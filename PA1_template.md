@@ -55,18 +55,25 @@ activites$Date = as.Date(activites$Date)
 The "Date"" field was converted to a date type, and the data was then grouped, with one set grouped by the "Date" field and the other grouped by the "Interval" field .
 
 ```r
-by_date <- group_by(select(activites, Steps, Date), Date)
-by_interval <- group_by(select(activites, Steps, Interval), Interval)
-data <- by_date %>% summarise_each(funs(sum(., na.rm = TRUE)))
-dataByInterval <- by_interval %>% summarise_each(funs(mean(., na.rm = TRUE)))
-dataByInterval <- arrange(dataByInterval, desc(Steps))
+# Do the grouping, keep for possible re-use
+group_by_date <- group_by(select(activites, Steps, Date), Date)
+group_by_interval <- group_by(select(activites, Steps, Interval), Interval)
+
+# Summarise by date
+by_date <- group_by_date %>% summarise_each(funs(sum(., na.rm = TRUE)))
+# Summarise by interval
+dataByInterval <- group_by_interval %>% summarise_each(funs(mean(., na.rm = TRUE))) 
+
+# Get the median and mean by date, variables are used inline in the markdown to output the values
+stepMedian <- median(by_date$Steps)
+stepMean <- mean(by_date$Steps)
 ```
 
 ## What is mean total number of steps taken per day?
 
-The median value of the number of steps is 10395.000
+The median value of the number of steps per day is 10395.000
 
-The mean value of the number of steps is 9354.230
+The mean value of the number of steps per day is 9354.230
 
 
 ```r
@@ -92,7 +99,11 @@ showPlot <- function(data){
 
 }
 
-showPlot(data)
+showPlot(by_date)
+
+# Get the interval with the highest number of steps. Order descending and then take the top entry using slice (dplyr)
+dataByInterval <- dataByInterval %>% arrange(desc(Steps))
+highestInterval = slice(dataByInterval,1)$Interval
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
@@ -133,27 +144,37 @@ Originally, total number of missing values is 2304
 
 ```r
 # Merge the original data with data that has the average of the steps per Interval from the data set
+# dataByInterval has each interval with it's average step. Medrge will join on the common column, which will be 
+# "Interval"
 activites = merge(activites, select(dataByInterval, Interval, AvgSteps = Steps))
 
-#Replace NA in steps with the average for that interval
+#Replace NA in steps with the average for that interval. After the merge we replace any NA step 
+# values with the value from AvgSteps, eliminating the NA values.
 activites <- activites %>% mutate(Steps = ifelse( is.na(Steps), AvgSteps, Steps))
 ```
 
 After the code above there are 0 missing values.
 
-The new value of the median of the number of steps per day is: 10395.000  
-The new value of the mean of the number of steps per day is: 9354.230
 
-The mean and the median are the same value.
+```r
+# Summarise the data again and then calculate the totals
+by_date <- group_by(select(activites, Steps, Date), Date)
+data <- by_date %>% summarise_each(funs(sum(., na.rm = TRUE)))
+
+# Get the new median and mean
+stepMedian <- median(data$Steps)
+stepMean <- mean(data$Steps)
+```
+
+The new value of the median of the number of steps per day is: 10766.189  
+The new value of the mean of the number of steps per day is: 10766.189
 
 
 ```r
-by_date <- group_by(select(activites, Steps, Date), Date)
-data <- by_date %>% summarise_each(funs(sum(., na.rm = TRUE)))
 showPlot(data)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -187,4 +208,4 @@ getWeekendData <- function(data){
 getWeekendData(by_ws)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 

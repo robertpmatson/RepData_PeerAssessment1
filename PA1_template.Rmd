@@ -46,20 +46,25 @@ activites$Date = as.Date(activites$Date)
 
 The "Date"" field was converted to a date type, and the data was then grouped, with one set grouped by the "Date" field and the other grouped by the "Interval" field .
 ```{r echo=TRUE}
+# Do the grouping, keep for possible re-use
+group_by_date <- group_by(select(activites, Steps, Date), Date)
+group_by_interval <- group_by(select(activites, Steps, Interval), Interval)
 
-by_date <- group_by(select(activites, Steps, Date), Date)
-by_interval <- group_by(select(activites, Steps, Interval), Interval)
-data <- by_date %>% summarise_each(funs(sum(., na.rm = TRUE)))
-dataByInterval <- by_interval %>% summarise_each(funs(mean(., na.rm = TRUE)))
-dataByInterval <- arrange(dataByInterval, desc(Steps))
+# Summarise by date
+by_date <- group_by_date %>% summarise_each(funs(sum(., na.rm = TRUE)))
+# Summarise by interval
+dataByInterval <- group_by_interval %>% summarise_each(funs(mean(., na.rm = TRUE))) 
 
+# Get the median and mean by date, variables are used inline in the markdown to output the values
+stepMedian <- median(by_date$Steps)
+stepMean <- mean(by_date$Steps)
 ```
 
 ## What is mean total number of steps taken per day?
 
-The median value of the number of steps is `r sprintf("%.3f", median(data$Steps)) `
+The median value of the number of steps per day is `r sprintf("%.3f", stepMedian) `
 
-The mean value of the number of steps is `r sprintf("%.3f", mean(data$Steps)) `
+The mean value of the number of steps per day is `r sprintf("%.3f", stepMean) `
 
 ```{r, echo=TRUE, fig.show='hold', fig.width=9, fig.height=6}
 showPlot <- function(data){
@@ -84,12 +89,17 @@ showPlot <- function(data){
 
 }
 
-showPlot(data)
+showPlot(by_date)
+
+# Get the interval with the highest number of steps. Order descending and then take the top entry using slice (dplyr)
+dataByInterval <- dataByInterval %>% arrange(desc(Steps))
+highestInterval = slice(dataByInterval,1)$Interval
+
 ```
 
 ## What is the average daily activity pattern?
 
-The Interval with the highest average number of steps is `r slice(dataByInterval,1)$Interval `
+The Interval with the highest average number of steps is `r highestInterval`
 
 ```{r, echo=TRUE, fig.show='hold', fig.width=9, fig.height=6}
 
@@ -120,23 +130,34 @@ Originally, total number of missing values is `r dim(activites[!complete.cases(a
 
 ```{r, echo=TRUE, fig.show='hold', fig.width=9, fig.height=6}
 # Merge the original data with data that has the average of the steps per Interval from the data set
+# dataByInterval has each interval with it's average step. Medrge will join on the common column, which will be 
+# "Interval"
 activites = merge(activites, select(dataByInterval, Interval, AvgSteps = Steps))
 
-#Replace NA in steps with the average for that interval
+#Replace NA in steps with the average for that interval. After the merge we replace any NA step 
+# values with the value from AvgSteps, eliminating the NA values.
 activites <- activites %>% mutate(Steps = ifelse( is.na(Steps), AvgSteps, Steps))
+
 
 ```
 
 After the code above there are `r dim(activites[!complete.cases(activites),])[1]` missing values.
 
-The new value of the median of the number of steps per day is: `r sprintf("%.3f", median(data$Steps)) `  
-The new value of the mean of the number of steps per day is: `r sprintf("%.3f", mean(data$Steps)) `
-
-The mean and the median are the same value.
-
 ```{r, fig.show='hold', fig.width=9, fig.height=6}
+
+# Summarise the data again and then calculate the totals
 by_date <- group_by(select(activites, Steps, Date), Date)
 data <- by_date %>% summarise_each(funs(sum(., na.rm = TRUE)))
+
+# Get the new median and mean
+stepMedian <- median(data$Steps)
+stepMean <- mean(data$Steps)
+```
+
+The new value of the median of the number of steps per day is: `r sprintf("%.3f", stepMedian) `  
+The new value of the mean of the number of steps per day is: `r sprintf("%.3f", stepMean) `
+
+```{r, fig.show='hold', fig.width=9, fig.height=6}
 showPlot(data)
 ```
 
