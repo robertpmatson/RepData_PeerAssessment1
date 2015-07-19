@@ -103,7 +103,7 @@ showPlot(by_date)
 
 # Get the interval with the highest number of steps. Order descending and then take the top entry using slice (dplyr)
 dataByInterval <- dataByInterval %>% arrange(desc(Steps))
-highestInterval = slice(dataByInterval,1)$Interval
+highestInterval <- slice(dataByInterval,1)$Interval
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
