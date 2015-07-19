@@ -93,14 +93,14 @@ library(lubridate)</code></pre>
 <pre class="r"><code>unzip(&quot;activity.zip&quot;)
 
 # file name
-fileName = &quot;activity.csv&quot;
+fileName &lt;- &quot;activity.csv&quot;
 
 #Load the data
-activites = tbl_df(read.table(fileName, 
+activites &lt;- tbl_df(read.table(fileName, 
     header=TRUE, sep=&quot;,&quot;, 
     col.names=c(&quot;Steps&quot;,&quot;Date&quot;,&quot;Interval&quot;)))
 
-activites$Date = as.Date(activites$Date)</code></pre>
+activites$Date &lt;- as.Date(activites$Date)</code></pre>
 <p>The “Date”&quot; field was converted to a date type, and the data was then grouped, with one set grouped by the “Date” field and the other grouped by the “Interval” field .</p>
 <pre class="r"><code># Do the grouping, keep for possible re-use
 group_by_date &lt;- group_by(select(activites, Steps, Date), Date)
@@ -176,7 +176,7 @@ getTimeSeries(dataByInterval)</code></pre>
 <pre class="r"><code># Merge the original data with data that has the average of the steps per Interval from the data set
 # dataByInterval has each interval with it's average step. Medrge will join on the common column, which will be 
 # &quot;Interval&quot;
-activites = merge(activites, select(dataByInterval, Interval, AvgSteps = Steps))
+activites &lt;- merge(activites, select(dataByInterval, Interval, AvgSteps = Steps))
 
 #Replace NA in steps with the average for that interval. After the merge we replace any NA step 
 # values with the value from AvgSteps, eliminating the NA values.

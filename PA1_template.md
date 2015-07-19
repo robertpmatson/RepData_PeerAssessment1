@@ -42,14 +42,14 @@ The data was unzipped and loaded into a data frame, wrapped with a table, for ea
 unzip("activity.zip")
 
 # file name
-fileName = "activity.csv"
+fileName <- "activity.csv"
 
 #Load the data
-activites = tbl_df(read.table(fileName, 
+activites <- tbl_df(read.table(fileName, 
     header=TRUE, sep=",", 
     col.names=c("Steps","Date","Interval")))
 
-activites$Date = as.Date(activites$Date)
+activites$Date <- as.Date(activites$Date)
 ```
 
 The "Date"" field was converted to a date type, and the data was then grouped, with one set grouped by the "Date" field and the other grouped by the "Interval" field .
@@ -146,7 +146,7 @@ Originally, total number of missing values is 2304
 # Merge the original data with data that has the average of the steps per Interval from the data set
 # dataByInterval has each interval with it's average step. Medrge will join on the common column, which will be 
 # "Interval"
-activites = merge(activites, select(dataByInterval, Interval, AvgSteps = Steps))
+activites <- merge(activites, select(dataByInterval, Interval, AvgSteps = Steps))
 
 #Replace NA in steps with the average for that interval. After the merge we replace any NA step 
 # values with the value from AvgSteps, eliminating the NA values.
